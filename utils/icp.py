@@ -110,3 +110,4 @@ def two_cloud_icp(pc1, pc2):
     print(icp_transform)
     # draw_registration_result_original_color(pc2, pc1, icp_transform)
     return icp_transform
+
