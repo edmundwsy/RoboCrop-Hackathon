@@ -1,18 +1,13 @@
 import numpy as np
 import open3d as o3d
+from utils.io import *
 
-print("Testing IO for point cloud ...")
-pcd = o3d.io.read_point_cloud("./data/1_PCL.ply")
-print(pcd)
-o3d.io.write_point_cloud("copy_of_fragment.pcd", pcd)
+# print("Testing IO for point cloud ...")
+# pcd = o3d.io.read_point_cloud("./data/1_PCL.ply")
+# print(pcd)
+# o3d.io.write_point_cloud("copy_of_fragment.pcd", pcd)
 
-def save_pcd_file(filename, pcd):
-  o3d.io.write_point_cloud(filename, pcd)
 
-def read_ply_file(filenumber):
-  filepath = "./data/" + filenumber + "_PCL.ply"
-  pcd = o3d.io.read_point_cloud(filepath)
-  return pcd
 
 if __name__ == "__main__":
 
