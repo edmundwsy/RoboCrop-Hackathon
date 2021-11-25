@@ -36,7 +36,7 @@ trans = np.array(
     )
 pc0 = pc1
 # for i in range(2, 14):
-for i in range(2, 5):
+for i in range(2, 14):
     print("=" * 20)
     print("Project point cloud ", i, " to point cloud 1")
     pci = read_ply_file(str(i))
