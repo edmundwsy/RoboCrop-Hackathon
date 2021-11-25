@@ -35,12 +35,13 @@ trans = np.array(
     [0, 0, 0, 1]]
     )
 pc0 = pc1
-for i in range(2, 14):
+# for i in range(2, 14):
+for i in range(2, 5):
     print("=" * 20)
     print("Project point cloud ", i, " to point cloud 1")
     pci = read_ply_file(str(i))
     pci = remove_outliers(pci)
-    trans = two_cloud_icp(pc0, pci)
+    trans = two_cloud_p2p(pc0, pci)
     # for _ in range(i-1):
     pci.transform(trans)
     cloud_list.append(pci)

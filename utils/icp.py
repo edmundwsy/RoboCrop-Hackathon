@@ -29,6 +29,7 @@ def preprocess_point_cloud(pcd, voxel_size):
         o3d.geometry.KDTreeSearchParamHybrid(radius=radius_feature, max_nn=100))
     return pcd_down, pcd_fpfh
 
+
 def global_registration(source_down, target_down, source_fpfh, target_fpfh, voxel_size):
     distance_threshold = voxel_size * 1.5
     print(":: RANSAC registration on downsampled point clouds.")
@@ -70,6 +71,7 @@ def draw_registration_result_original_color(source, target, transformation):
     source_temp.transform(transformation)
     o3d.visualization.draw_geometries([source_temp, target])
 
+
 def fast_global_registration(pc1, pc2):
   voxel_size = 0.01  # means 1cm for the dataset
   pc1_down, pc1_fpfh = preprocess_point_cloud(pc1, voxel_size)
@@ -88,10 +90,8 @@ def fast_global_registration(pc1, pc2):
   print(result)
   return result
 
-def two_cloud_icp(pc1, pc2):
-    identity_transform = np.identity(4)
-    print(identity_transform)
-    # draw_registration_result_original_color(pc2, pc1, identity_trasform)
+
+def two_cloud_p2p(pc1, pc2):
     fast_result = fast_global_registration(pc1, pc2)
     init_transform = fast_result.transformation
     print("Transformation is:")
@@ -102,7 +102,10 @@ def two_cloud_icp(pc1, pc2):
     threshold = 0.02
     reg_p2p = o3d.pipelines.registration.registration_icp(
         pc2, pc1, threshold, init_transform,
-        o3d.pipelines.registration.TransformationEstimationPointToPoint())
+        o3d.pipelines.registration.TransformationEstimationPointToPoint(),
+        o3d.pipelines.registration.ICPConvergenceCriteria(relative_fitness=1e-3,
+                                                    relative_rmse=1e-3,
+                                                    max_iteration=100))
     print(reg_p2p)
 
     icp_transform = reg_p2p.transformation
@@ -111,3 +114,74 @@ def two_cloud_icp(pc1, pc2):
     # draw_registration_result_original_color(pc2, pc1, icp_transform)
     return icp_transform
 
+
+def two_cloud_p2l(pc1, pc2):
+    threshold = 0.02
+    voxel_size = 0.1
+
+    pc1_down, pc1_fpfh = preprocess_point_cloud(pc1, voxel_size)
+    pc2_down, pc2_fpfh = preprocess_point_cloud(pc2, voxel_size)
+    
+    fast_result = fast_global_registration(pc1, pc2)
+    init_transform = fast_result.transformation
+    init_transform = np.identity(4)
+    print("Transformation is:")
+    print(init_transform)    
+    # draw_registration_result_original_color(pc2, pc1, init_transform)
+
+    print("Apply point-to-plane ICP")
+    reg_p2l = o3d.pipelines.registration.registration_icp(
+        pc2_down, pc1_down, threshold, init_transform,
+        o3d.pipelines.registration.TransformationEstimationPointToPlane(),
+        o3d.pipelines.registration.ICPConvergenceCriteria(relative_fitness=1e-3,
+                                                    relative_rmse=1e-3,
+                                                    max_iteration=500))
+    print(reg_p2l)
+    icp_transform = reg_p2l.transformation
+    print("Transformation is:")
+    print(icp_transform)
+
+    # draw_registration_result_original_color(pc2, pc1, icp_transform)
+    return icp_transform
+
+
+def two_cloud_p2lc(pc1, pc2):
+    """
+    WARNING this function not work, maybe some error ralated to open3D source code
+    """
+    voxel_radius = [0.04, 0.02, 0.01]
+    max_iter = [50, 30, 14]
+    # init_transform = np.identity(4)
+    fast_result = fast_global_registration(pc1, pc2)
+    init_transform = fast_result.transformation
+    for scale in range(3):
+        iter = max_iter[scale]
+        radius = voxel_radius[scale]
+        print("Downsample with a voxel size %.2f" % radius)
+
+        pc1_down = pc1.voxel_down_sample(radius)
+        pc2_down = pc2.voxel_down_sample(radius)
+        print("Transformation is:")
+        print(init_transform)    
+        # draw_registration_result_original_color(pc2, pc1, init_transform)
+
+        print("Apply point-to-point ICP")
+        pc2_down.estimate_normals(
+            o3d.geometry.KDTreeSearchParamHybrid(radius=radius * 2, max_nn=30))
+        pc1_down.estimate_normals(
+            o3d.geometry.KDTreeSearchParamHybrid(radius=radius * 2, max_nn=30))
+        
+        reg_p2l = o3d.pipelines.registration.registration_icp(
+            pc2_down, pc1_down, radius, init_transform,
+            o3d.pipelines.registration.TransformationEstimationForColoredICP(),
+            o3d.pipelines.registration.ICPConvergenceCriteria(relative_fitness=1e-6,
+                                                          relative_rmse=1e-6,
+                                                          max_iteration=iter))
+        
+        print(reg_p2l)
+
+    icp_transform = reg_p2l.transformation
+    print("Transformation is:")
+    print(icp_transform)
+    # draw_registration_result_original_color(pc2, pc1, icp_transform)
+    return icp_transform
