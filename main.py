@@ -35,8 +35,9 @@ trans = np.array(
     [0, 0, 0, 1]]
     )
 pc0 = pc1
+pcz = pc0
 # for i in range(2, 14):
-for i in range(2, 14):
+for i in range(2, 25):
     print("=" * 20)
     print("Project point cloud ", i, " to point cloud 1")
     pci = read_ply_file(str(i))
@@ -46,8 +47,9 @@ for i in range(2, 14):
     pci.transform(trans)
     cloud_list.append(pci)
     pc0 = pci
+    pcz += pci
 
-o3d.visualization.draw_geometries(cloud_list)
+o3d.visualization.draw_geometries([pcz])
 
-
+o3d.io.write_point_cloud("./data/combination.pcd", pcz)
 
