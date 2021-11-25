@@ -1,6 +1,6 @@
 import numpy as np
 import open3d as o3d
-from utils.io import *
+from utils.data_loader import *
 from utils.icp import *
 from utils.filter import *
 

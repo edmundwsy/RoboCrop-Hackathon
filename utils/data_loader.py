@@ -9,6 +9,11 @@ def read_ply_file(filenumber):
   pcd = o3d.io.read_point_cloud(filepath)
   return pcd
 
+def convert_nparray(pcd):
+  # np_points = np.asarray(pcd.points)
+  np_colors = np.asarray(pcd.colors)
+  # return np.hstack([np_points, np_colors])
+  return np_colors
 
 if __name__ == "__main__":
 
